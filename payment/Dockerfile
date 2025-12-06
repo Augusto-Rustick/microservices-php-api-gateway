@@ -1,0 +1,41 @@
+# Dockerfile base para os microserviços PHP
+FROM php:8.2-fpm-alpine
+
+# Instalação de dependências do sistema
+RUN apk add --no-cache \
+    nginx \
+    make \
+    g++ \
+    autoconf \
+    libzip-dev \
+    rabbitmq-c-dev \
+    pcre-dev \
+    linux-headers
+
+# Instalação de extensões PHP
+RUN docker-php-ext-install pdo pdo_mysql zip sockets
+
+# Instalação da extensão AMQP para RabbitMQ
+RUN pecl install amqp && docker-php-ext-enable amqp
+
+# Instalação do Composer
+COPY --from=composer:latest /usr/bin/composer /usr/local/bin/composer
+
+# Instalação do PHPUnit globalmente
+RUN composer global require "phpunit/phpunit=^10.0"
+
+# Configuração do Nginx (opcional, mas útil para servir a API)
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+# Diretório de trabalho
+WORKDIR /var/www/html
+
+# Expor a porta 80 (Nginx)
+EXPOSE 80
+
+# Instalação das dependências do Composer
+COPY composer.json .
+RUN composer install --no-dev --optimize-autoloader
+
+# Comando de inicialização
+CMD ["php-fpm"]

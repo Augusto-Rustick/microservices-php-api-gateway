@@ -1,0 +1,173 @@
+_format_version: "3.0"
+_transform: true
+
+services:
+  # Serviço de Catálogo
+  - name: catalog-service
+    url: http://catalog:80
+    routes:
+      - name: catalog-route
+        paths:
+          - /catalog*
+        strip_path: true
+        methods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+    plugins:
+      - name: rate-limiting
+        config:
+          minute: 100
+          policy: local
+      - name: cors
+        config:
+          origins:
+            - "*"
+          methods:
+            - GET
+            - POST
+            - PUT
+            - DELETE
+            - OPTIONS
+          headers:
+            - Accept
+            - Authorization
+            - Content-Type
+          exposed_headers:
+            - X-Auth-Token
+          credentials: true
+          max_age: 3600
+
+  # Serviço de Pedidos
+  - name: orders-service
+    url: http://orders:80
+    routes:
+      - name: orders-route
+        paths:
+          - /orders*
+        strip_path: true
+        methods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+    plugins:
+      - name: rate-limiting
+        config:
+          minute: 100
+          policy: local
+      - name: cors
+        config:
+          origins:
+            - "*"
+          methods:
+            - GET
+            - POST
+            - PUT
+            - DELETE
+            - OPTIONS
+          headers:
+            - Accept
+            - Authorization
+            - Content-Type
+          exposed_headers:
+            - X-Auth-Token
+          credentials: true
+          max_age: 3600
+      - name: jwt
+        config:
+          claims_to_verify:
+            - exp
+
+  # Serviço de Promoções
+  - name: promotions-service
+    url: http://promotions:80
+    routes:
+      - name: promotions-route
+        paths:
+          - /promotions*
+        strip_path: true
+        methods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+    plugins:
+      - name: rate-limiting
+        config:
+          minute: 100
+          policy: local
+      - name: cors
+        config:
+          origins:
+            - "*"
+          methods:
+            - GET
+            - POST
+            - PUT
+            - DELETE
+            - OPTIONS
+          headers:
+            - Accept
+            - Authorization
+            - Content-Type
+          exposed_headers:
+            - X-Auth-Token
+          credentials: true
+          max_age: 3600
+
+  # Serviço de Pagamento
+  - name: payment-service
+    url: http://payment:80
+    routes:
+      - name: payment-route
+        paths:
+          - /payment*
+        strip_path: true
+        methods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+    plugins:
+      - name: rate-limiting
+        config:
+          minute: 50
+          policy: local
+      - name: cors
+        config:
+          origins:
+            - "*"
+          methods:
+            - GET
+            - POST
+            - PUT
+            - DELETE
+            - OPTIONS
+          headers:
+            - Accept
+            - Authorization
+            - Content-Type
+          exposed_headers:
+            - X-Auth-Token
+          credentials: true
+          max_age: 3600
+      - name: jwt
+        config:
+          claims_to_verify:
+            - exp
+
+# Consumidores e Credenciais JWT
+consumers:
+  - username: test-user
+    jwt_secrets:
+      - key: test-key
+        secret: test-secret
+        algorithm: HS256
+  
+  - username: admin-user
+    jwt_secrets:
+      - key: admin-key
+        secret: admin-secret-key-2024
+        algorithm: HS256
