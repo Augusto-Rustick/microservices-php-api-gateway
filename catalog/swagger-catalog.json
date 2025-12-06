@@ -1,0 +1,355 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Catalog API",
+    "description": "API de gerenciamento de produtos do catálogo",
+    "version": "1.0.0",
+    "contact": {
+      "name": "API Support",
+      "email": "support@example.com"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8001",
+      "description": "Servidor de desenvolvimento - Catalog"
+    },
+    {
+      "url": "http://api-gateway:8000/catalog",
+      "description": "API Gateway - Catalog"
+    }
+  ],
+  "paths": {
+    "/products": {
+      "get": {
+        "summary": "Lista todos os produtos",
+        "description": "Retorna uma lista completa de todos os produtos disponíveis no catálogo",
+        "operationId": "getProducts",
+        "tags": [
+          "Catalog"
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de produtos retornada com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Product"
+                  }
+                },
+                "example": [
+                  {
+                    "id": 1,
+                    "name": "Laptop",
+                    "price": 1200
+                  },
+                  {
+                    "id": 2,
+                    "name": "Mouse",
+                    "price": 25
+                  }
+                ]
+              }
+            }
+          },
+          "500": {
+            "description": "Erro interno do servidor"
+          }
+        }
+      },
+      "post": {
+        "summary": "Cria um novo produto",
+        "description": "Cria um novo produto no catálogo. Requer autenticação JWT",
+        "operationId": "createProduct",
+        "tags": [
+          "Catalog"
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "Dados do novo produto",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProductInput"
+              },
+              "example": {
+                "name": "Teclado Mecânico",
+                "price": 150
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Produto criado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Product"
+                },
+                "example": {
+                  "id": 123,
+                  "name": "Teclado Mecânico",
+                  "price": 150
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Dados inválidos fornecidos"
+          },
+          "401": {
+            "description": "Não autenticado"
+          },
+          "500": {
+            "description": "Erro interno do servidor"
+          }
+        },
+        "security": [
+          {
+            "jwt": []
+          }
+        ]
+      }
+    },
+    "/products/{id}": {
+      "get": {
+        "summary": "Busca um produto pelo ID",
+        "description": "Retorna os detalhes de um produto específico baseado no ID fornecido",
+        "operationId": "getProduct",
+        "tags": [
+          "Catalog"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "ID único do produto",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "example": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Detalhes do produto retornados com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Product"
+                },
+                "example": {
+                  "id": 1,
+                  "name": "Laptop",
+                  "price": 1200
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Produto não encontrado"
+          },
+          "500": {
+            "description": "Erro interno do servidor"
+          }
+        }
+      },
+      "put": {
+        "summary": "Atualiza um produto existente",
+        "description": "Atualiza os dados de um produto específico. Requer autenticação JWT",
+        "operationId": "updateProduct",
+        "tags": [
+          "Catalog"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "ID único do produto",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "example": 1
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "Dados atualizados do produto",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProductInput"
+              },
+              "example": {
+                "name": "Laptop Gamer",
+                "price": 1500
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Produto atualizado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Product"
+                },
+                "example": {
+                  "id": 1,
+                  "name": "Laptop Gamer",
+                  "price": 1500
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Dados inválidos fornecidos"
+          },
+          "401": {
+            "description": "Não autenticado"
+          },
+          "404": {
+            "description": "Produto não encontrado"
+          },
+          "500": {
+            "description": "Erro interno do servidor"
+          }
+        },
+        "security": [
+          {
+            "jwt": []
+          }
+        ]
+      },
+      "delete": {
+        "summary": "Deleta um produto",
+        "description": "Remove um produto do catálogo. Requer autenticação JWT",
+        "operationId": "deleteProduct",
+        "tags": [
+          "Catalog"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "ID único do produto",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "example": 1
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Produto deletado com sucesso"
+          },
+          "401": {
+            "description": "Não autenticado"
+          },
+          "404": {
+            "description": "Produto não encontrado"
+          },
+          "500": {
+            "description": "Erro interno do servidor"
+          }
+        },
+        "security": [
+          {
+            "jwt": []
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Product": {
+        "type": "object",
+        "description": "Representa um produto no catálogo",
+        "required": [
+          "id",
+          "name",
+          "price"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64",
+            "description": "ID único do produto",
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "description": "Nome do produto",
+            "example": "Laptop"
+          },
+          "price": {
+            "type": "number",
+            "format": "float",
+            "description": "Preço do produto",
+            "example": 1200.00
+          }
+        }
+      },
+      "ProductInput": {
+        "type": "object",
+        "description": "Dados de entrada para criar ou atualizar um produto",
+        "required": [
+          "name",
+          "price"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Nome do produto",
+            "example": "Teclado Mecânico"
+          },
+          "price": {
+            "type": "number",
+            "format": "float",
+            "description": "Preço do produto",
+            "example": 150.00
+          }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "description": "Resposta de erro padrão",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "Código de erro HTTP"
+          },
+          "message": {
+            "type": "string",
+            "description": "Mensagem de erro"
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "jwt": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "Token JWT para autenticação"
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Catalog",
+      "description": "Operações relacionadas ao catálogo de produtos"
+    }
+  ]
+}

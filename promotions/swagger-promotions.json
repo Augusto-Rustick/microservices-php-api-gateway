@@ -1,0 +1,115 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Promotions API",
+    "description": "API de gerenciamento de promoções e descontos",
+    "version": "1.0.0",
+    "contact": {
+      "name": "API Support",
+      "email": "support@example.com"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8004",
+      "description": "Servidor de desenvolvimento - Promotions"
+    },
+    {
+      "url": "http://api-gateway:8000/promotions",
+      "description": "API Gateway - Promotions"
+    }
+  ],
+  "paths": {
+    "/promotions": {
+      "get": {
+        "summary": "Lista todas as promoções ativas",
+        "description": "Retorna uma lista de todas as promoções e descontos atualmente ativos",
+        "operationId": "getPromotions",
+        "tags": [
+          "Promotions"
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de promoções retornada com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Promotion"
+                  }
+                },
+                "example": [
+                  {
+                    "id": 10,
+                    "name": "Black Friday",
+                    "discount": "20%"
+                  },
+                  {
+                    "id": 11,
+                    "name": "Natal",
+                    "discount": "10%"
+                  }
+                ]
+              }
+            }
+          },
+          "500": {
+            "description": "Erro interno do servidor"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Promotion": {
+        "type": "object",
+        "description": "Representa uma promoção ativa no sistema",
+        "required": [
+          "id",
+          "name",
+          "discount"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64",
+            "description": "ID único da promoção",
+            "example": 10
+          },
+          "name": {
+            "type": "string",
+            "description": "Nome da promoção",
+            "example": "Black Friday"
+          },
+          "discount": {
+            "type": "string",
+            "description": "Percentual ou valor de desconto",
+            "example": "20%"
+          }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "description": "Resposta de erro padrão",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "Código de erro HTTP"
+          },
+          "message": {
+            "type": "string",
+            "description": "Mensagem de erro"
+          }
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Promotions",
+      "description": "Operações relacionadas a promoções e descontos"
+    }
+  ]
+}

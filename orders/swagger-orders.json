@@ -1,0 +1,207 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Orders API",
+    "description": "API de gerenciamento de pedidos",
+    "version": "1.0.0",
+    "contact": {
+      "name": "API Support",
+      "email": "support@example.com"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8002",
+      "description": "Servidor de desenvolvimento - Orders"
+    },
+    {
+      "url": "http://api-gateway:8000/orders",
+      "description": "API Gateway - Orders"
+    }
+  ],
+  "paths": {
+    "/orders": {
+      "get": {
+        "summary": "Lista todos os pedidos",
+        "description": "Retorna uma lista de todos os pedidos. Requer autenticação JWT",
+        "operationId": "getOrders",
+        "tags": [
+          "Orders"
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de pedidos retornada com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Order"
+                  }
+                },
+                "example": [
+                  {
+                    "id": 101,
+                    "product_id": 1,
+                    "status": "pending"
+                  },
+                  {
+                    "id": 102,
+                    "product_id": 2,
+                    "status": "shipped"
+                  }
+                ]
+              }
+            }
+          },
+          "401": {
+            "description": "Não autenticado"
+          },
+          "500": {
+            "description": "Erro interno do servidor"
+          }
+        },
+        "security": [
+          {
+            "jwt": []
+          }
+        ]
+      },
+      "post": {
+        "summary": "Cria um novo pedido",
+        "description": "Cria um novo pedido no sistema. Requer autenticação JWT",
+        "operationId": "createOrder",
+        "tags": [
+          "Orders"
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "Dados do novo pedido",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrderInput"
+              },
+              "example": {
+                "product_id": 1
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Pedido criado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                },
+                "example": {
+                  "id": 103,
+                  "product_id": 1,
+                  "status": "pending"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Dados inválidos fornecidos"
+          },
+          "401": {
+            "description": "Não autenticado"
+          },
+          "500": {
+            "description": "Erro interno do servidor"
+          }
+        },
+        "security": [
+          {
+            "jwt": []
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Order": {
+        "type": "object",
+        "description": "Representa um pedido no sistema",
+        "required": [
+          "id",
+          "product_id",
+          "status"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64",
+            "description": "ID único do pedido",
+            "example": 101
+          },
+          "product_id": {
+            "type": "integer",
+            "format": "int64",
+            "description": "ID do produto associado ao pedido",
+            "example": 1
+          },
+          "status": {
+            "type": "string",
+            "description": "Status do pedido",
+            "enum": [
+              "pending",
+              "processing",
+              "shipped",
+              "delivered",
+              "cancelled"
+            ],
+            "example": "pending"
+          }
+        }
+      },
+      "OrderInput": {
+        "type": "object",
+        "description": "Dados de entrada para criar um novo pedido",
+        "required": [
+          "product_id"
+        ],
+        "properties": {
+          "product_id": {
+            "type": "integer",
+            "format": "int64",
+            "description": "ID do produto para o novo pedido",
+            "example": 1
+          }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "description": "Resposta de erro padrão",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "Código de erro HTTP"
+          },
+          "message": {
+            "type": "string",
+            "description": "Mensagem de erro"
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "jwt": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "Token JWT para autenticação"
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Orders",
+      "description": "Operações relacionadas a pedidos"
+    }
+  ]
+}
