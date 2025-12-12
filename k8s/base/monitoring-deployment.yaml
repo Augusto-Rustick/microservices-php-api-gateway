@@ -1,0 +1,200 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-config
+  namespace: microservices
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval: 15s
+      evaluation_interval: 15s
+      external_labels:
+        monitor: 'microservices-monitor'
+
+    alerting:
+      alertmanagers:
+        - static_configs:
+            - targets: []
+
+    rule_files:
+      - '/etc/prometheus/alert_rules.yml'
+
+    scrape_configs:
+      - job_name: 'prometheus'
+        static_configs:
+          - targets: ['localhost:9090']
+
+      - job_name: 'kong'
+        static_configs:
+          - targets: ['kong:8001']
+        metrics_path: '/metrics'
+
+      - job_name: 'rabbitmq'
+        static_configs:
+          - targets: ['rabbitmq:15672']
+        metrics_path: '/api/metrics'
+        basic_auth:
+          username: 'user'
+          password: 'password'
+
+  alert_rules.yml: |
+    groups:
+      - name: microservices_alerts
+        interval: 30s
+        rules:
+          - alert: ServiceDown
+            expr: up == 0
+            for: 2m
+            labels:
+              severity: critical
+            annotations:
+              summary: "Service {{ $labels.job }} is down"
+              description: "Service {{ $labels.job }} has been down for more than 2 minutes."
+
+          - alert: HighErrorRate
+            expr: rate(http_requests_total{status=~"5.."}[5m]) > 0.05
+            for: 5m
+            labels:
+              severity: warning
+            annotations:
+              summary: "High error rate on {{ $labels.job }}"
+              description: "Error rate is {{ $value }} for service {{ $labels.job }}"
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prometheus
+  namespace: microservices
+  labels:
+    app: microservices
+    service: prometheus
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: microservices
+      service: prometheus
+  template:
+    metadata:
+      labels:
+        app: microservices
+        service: prometheus
+    spec:
+      containers:
+      - name: prometheus
+        image: prom/prometheus:latest
+        ports:
+        - containerPort: 9090
+          name: http
+        args:
+          - '--config.file=/etc/prometheus/prometheus.yml'
+          - '--storage.tsdb.path=/prometheus'
+          - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+          - '--web.console.templates=/usr/share/prometheus/consoles'
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        volumeMounts:
+        - name: prometheus-config
+          mountPath: /etc/prometheus
+        - name: prometheus-storage
+          mountPath: /prometheus
+      volumes:
+      - name: prometheus-config
+        configMap:
+          name: prometheus-config
+      - name: prometheus-storage
+        emptyDir: {}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus
+  namespace: microservices
+  labels:
+    app: microservices
+    service: prometheus
+spec:
+  type: ClusterIP
+  ports:
+  - port: 9090
+    targetPort: 9090
+    protocol: TCP
+    name: http
+  selector:
+    app: microservices
+    service: prometheus
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grafana
+  namespace: microservices
+  labels:
+    app: microservices
+    service: grafana
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: microservices
+      service: grafana
+  template:
+    metadata:
+      labels:
+        app: microservices
+        service: grafana
+    spec:
+      containers:
+      - name: grafana
+        image: grafana/grafana:latest
+        ports:
+        - containerPort: 3000
+          name: http
+        env:
+        - name: GF_SECURITY_ADMIN_PASSWORD
+          value: "admin"
+        - name: GF_SECURITY_ADMIN_USER
+          value: "admin"
+        - name: GF_INSTALL_PLUGINS
+          value: "grafana-piechart-panel"
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "500m"
+        volumeMounts:
+        - name: grafana-storage
+          mountPath: /var/lib/grafana
+      volumes:
+      - name: grafana-storage
+        emptyDir: {}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: grafana
+  namespace: microservices
+  labels:
+    app: microservices
+    service: grafana
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 3000
+    targetPort: 3000
+    protocol: TCP
+    name: http
+  selector:
+    app: microservices
+    service: grafana

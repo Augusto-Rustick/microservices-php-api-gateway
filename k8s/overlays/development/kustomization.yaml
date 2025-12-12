@@ -1,0 +1,36 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: development
+
+bases:
+  - ../../base
+
+namePrefix: dev-
+
+commonLabels:
+  environment: development
+
+replicas:
+  - name: catalog
+    count: 1
+  - name: orders
+    count: 1
+  - name: promotions
+    count: 1
+  - name: payment
+    count: 1
+  - name: rabbitmq
+    count: 1
+  - name: kong
+    count: 1
+
+images:
+  - name: docker.io/DOCKERHUB_USERNAME/catalog
+    newTag: latest
+  - name: docker.io/DOCKERHUB_USERNAME/orders
+    newTag: latest
+  - name: docker.io/DOCKERHUB_USERNAME/promotions
+    newTag: latest
+  - name: docker.io/DOCKERHUB_USERNAME/payment
+    newTag: latest

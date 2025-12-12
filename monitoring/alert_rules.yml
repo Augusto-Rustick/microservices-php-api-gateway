@@ -1,0 +1,57 @@
+groups:
+  - name: microservices_alerts
+    interval: 30s
+    rules:
+      - alert: ServiceDown
+        expr: up == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Service {{ $labels.job }} is down"
+          description: "Service {{ $labels.job }} has been down for more than 2 minutes."
+
+      - alert: HighErrorRate
+        expr: rate(http_requests_total{status=~"5.."}[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High error rate on {{ $labels.job }}"
+          description: "Error rate is {{ $value }} for service {{ $labels.job }}"
+
+      - alert: HighMemoryUsage
+        expr: container_memory_usage_bytes / container_spec_memory_limit_bytes > 0.9
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High memory usage on {{ $labels.container_name }}"
+          description: "Memory usage is {{ $value | humanizePercentage }} for {{ $labels.container_name }}"
+
+      - alert: HighCPUUsage
+        expr: rate(container_cpu_usage_seconds_total[5m]) > 0.8
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU usage on {{ $labels.container_name }}"
+          description: "CPU usage is {{ $value | humanizePercentage }} for {{ $labels.container_name }}"
+
+      - alert: RabbitMQDown
+        expr: up{job="rabbitmq"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "RabbitMQ is down"
+          description: "RabbitMQ service is not responding"
+
+      - alert: KongDown
+        expr: up{job="kong"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Kong API Gateway is down"
+          description: "Kong API Gateway is not responding"

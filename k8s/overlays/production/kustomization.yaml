@@ -1,0 +1,55 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: production
+
+bases:
+  - ../../base
+
+namePrefix: prod-
+
+commonLabels:
+  environment: production
+
+replicas:
+  - name: catalog
+    count: 3
+  - name: orders
+    count: 3
+  - name: promotions
+    count: 3
+  - name: payment
+    count: 3
+  - name: rabbitmq
+    count: 1
+  - name: kong
+    count: 2
+
+images:
+  - name: docker.io/DOCKERHUB_USERNAME/catalog
+    newTag: v1.0.0
+  - name: docker.io/DOCKERHUB_USERNAME/orders
+    newTag: v1.0.0
+  - name: docker.io/DOCKERHUB_USERNAME/promotions
+    newTag: v1.0.0
+  - name: docker.io/DOCKERHUB_USERNAME/payment
+    newTag: v1.0.0
+
+patchesStrategicMerge:
+  - |-
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: catalog
+    spec:
+      template:
+        spec:
+          containers:
+          - name: catalog
+            resources:
+              requests:
+                memory: "256Mi"
+                cpu: "250m"
+              limits:
+                memory: "512Mi"
+                cpu: "1000m"
